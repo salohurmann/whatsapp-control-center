@@ -1,0 +1,11 @@
+.env
+__pycache__/
+*.pyc
+dist/
+build/
+whatsapp_bulk.db
+whatsapp_bulk.db-shm
+whatsapp_bulk.db-wal
+logs/
+backups/
+.smoke_test_runtime/

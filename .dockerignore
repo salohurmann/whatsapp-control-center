@@ -1,0 +1,12 @@
+.git
+.gitignore
+.venv
+__pycache__
+*.pyc
+build
+dist
+logs
+backups
+whatsapp_bulk.db
+whatsapp_bulk.db-shm
+whatsapp_bulk.db-wal

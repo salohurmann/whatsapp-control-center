@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WhatsApp Control Center</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f4f7fb;--surface:#fff;--surface-soft:#f8fafc;--surface-dark:#0f172a;--surface-dark-2:#111827;--line:#e2e8f0;--line-strong:#cbd5e1;--text:#0f172a;--muted:#64748b;--primary:#2563eb;--primary-soft:rgba(37,99,235,.10);--success:#0f766e;--success-soft:rgba(15,118,110,.10);--warning:#b45309;--warning-soft:rgba(180,83,9,.10);--danger:#b91c1c;--danger-soft:rgba(185,28,28,.10);--shadow:0 14px 34px rgba(15,23,42,.08);--radius:18px;--mono:"IBM Plex Mono",monospace;--sans:"Inter",sans-serif}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%}body{font-family:var(--sans);color:var(--text);background:radial-gradient(circle at top left,rgba(37,99,235,.07),transparent 24%),linear-gradient(180deg,#f8fbff 0%,var(--bg) 100%);overflow-x:hidden}
+button,input,textarea,select{font:inherit}.app{display:grid;grid-template-columns:280px minmax(0,1fr);min-height:100vh}.sidebar{background:linear-gradient(180deg,var(--surface-dark) 0%,var(--surface-dark-2) 100%);color:#e5eefc;padding:24px 18px;border-right:1px solid rgba(255,255,255,.06)}.content{padding:24px;min-width:0}
+.brand,.connection,.card{border-radius:18px}.brand,.connection{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}.brand{padding:20px}.connection{margin-top:18px;padding:16px}.card{background:var(--surface);border:1px solid var(--line);box-shadow:var(--shadow);padding:22px;min-width:0}
+.eyebrow,.label,.table th{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase}.brand .eyebrow{color:#93c5fd}.brand h1{margin:10px 0 8px;font-size:28px;line-height:1;color:#fff}.brand p,.sidebar .muted{color:#9fb0cb}.muted{margin:0;color:var(--muted);overflow-wrap:anywhere;word-break:break-word}
+.status-row,.row,.topbar,.card-head{display:flex;gap:12px;flex-wrap:wrap}.status-row{align-items:center}.topbar,.card-head{justify-content:space-between;align-items:flex-start}.status-dot{width:10px;height:10px;border-radius:999px;background:#94a3b8}.status-dot.online{background:#22c55e;box-shadow:0 0 0 6px rgba(34,197,94,.18)}.status-dot.offline{background:#ef4444;box-shadow:0 0 0 6px rgba(239,68,68,.18)}
+.nav{margin-top:24px;display:grid;gap:8px}.nav button{border:1px solid transparent;background:transparent;color:#b9c7df;text-align:left;padding:13px 14px;border-radius:14px;cursor:pointer}.nav button.active{color:#fff;border-color:rgba(255,255,255,.10);background:rgba(255,255,255,.08)}
+.topbar{margin-bottom:20px}.topbar h2{margin:4px 0 0;font-size:32px;line-height:1.05}.topbar p{margin:10px 0 0;max-width:64ch;color:var(--muted)}
+.view.hidden{display:none}.section{display:grid;gap:18px}.grid-4{display:grid;gap:16px;grid-template-columns:repeat(4,minmax(0,1fr))}.grid-main{display:grid;gap:18px;grid-template-columns:minmax(0,1.4fr) minmax(320px,.92fr)}.grid-2,.form-grid{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr))}
+.metric{background:linear-gradient(180deg,#fff 0%,var(--surface-soft) 100%);border-top:4px solid var(--line-strong)}.metric.primary{border-top-color:var(--primary)}.metric.success{border-top-color:var(--success)}.metric.danger{border-top-color:var(--danger)}.metric.warning{border-top-color:var(--warning)}.metric .value{margin-top:16px;font-size:38px;line-height:1}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-family:var(--mono);font-size:11px;background:#eef2ff;color:#334155}.pill.running,.pill.queued,.pill.retry_pending,.pill.processing{background:var(--primary-soft);color:var(--primary)}.pill.finished,.pill.sent,.pill.delivered,.pill.read{background:var(--success-soft);color:var(--success)}.pill.paused,.pill.pause_requested{background:var(--warning-soft);color:var(--warning)}.pill.failed,.pill.failed_temporary,.pill.failed_permanent,.pill.canceled,.pill.cancel_requested,.pill.undelivered{background:var(--danger-soft);color:var(--danger)}
+button{border:1px solid transparent;border-radius:12px;padding:12px 16px;cursor:pointer;transition:.18s ease}button:hover{transform:translateY(-1px)}button:disabled{opacity:.65;cursor:not-allowed;transform:none}.primary-btn{background:var(--primary);color:#fff}.secondary-btn{background:#fff;color:var(--text);border-color:var(--line)}.ghost-btn{background:#eff6ff;color:#1d4ed8}.danger-btn{background:var(--danger);color:#fff}
+.form-grid{gap:14px}.full{grid-column:1 / -1}label{display:block;margin-bottom:8px;color:var(--muted)}input[type=text],input[type=number],textarea,select{width:100%;border:1px solid #d8e1ee;background:#fff;color:var(--text);border-radius:14px;padding:14px 15px;outline:none;transition:border-color .16s ease,box-shadow .16s ease}input:focus,textarea:focus,select:focus{border-color:#93c5fd;box-shadow:0 0 0 4px rgba(37,99,235,.12)}textarea{min-height:128px;resize:vertical}
+.dropzone,.list-item,.log-item{border:1px solid var(--line);border-radius:16px;background:#fff}.dropzone{border-style:dashed;background:var(--surface-soft);padding:28px;text-align:center;cursor:pointer}.dropzone.active{border-color:var(--primary);background:#eef5ff}.list,.log{display:grid;gap:10px}.list-item,.log-item{padding:14px 16px;min-width:0}
+.progress{height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:16px}.progress>div{width:0;height:100%;background:linear-gradient(90deg,var(--primary),#60a5fa);transition:width .3s ease}.table-wrap{border:1px solid var(--line);border-radius:16px;overflow:auto}.table{width:100%;min-width:900px;border-collapse:collapse;background:#fff}.table th,.table td{padding:14px 16px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}.table th{color:var(--muted);background:var(--surface-soft)}.table tr:last-child td{border-bottom:none}
+.result{display:none;margin-top:14px;padding:15px;border-radius:16px;white-space:pre-wrap;word-break:break-word;font-family:var(--mono);font-size:12px}.result.ok{background:var(--success-soft);color:var(--success)}.result.err{background:var(--danger-soft);color:var(--danger)}.mono{font-family:var(--mono)}.empty{color:var(--muted)}
+#api-meta{margin-top:10px;overflow-wrap:anywhere;word-break:break-word}
+@media (max-width:1200px){.app{grid-template-columns:1fr}.sidebar{border-right:0;border-bottom:1px solid rgba(15,23,42,.08)}.content{padding:18px}.grid-4,.grid-main,.grid-2,.form-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="eyebrow">WhatsApp Business</div>
+      <h1>Control Center</h1>
+      <p>Painel operacional para campanhas, fila, monitoramento e webhook.</p>
+    </div>
+    <div class="connection">
+      <div class="eyebrow">Conexão</div>
+      <div style="margin-top:12px;">
+        <label>Cliente ativo</label>
+        <select id="client-selector" onchange="changeClient(this.value)"><option value="">Carregando...</option></select>
+      </div>
+      <div class="status-row" style="margin-top:12px;">
+        <div class="status-dot offline" id="api-dot"></div>
+        <strong id="api-status">API offline</strong>
+      </div>
+      <div class="muted" id="api-meta">Aguardando teste de conexão.</div>
+    </div>
+    <nav class="nav">
+      <button class="active" data-view="overview">Overview</button>
+      <button data-view="campaigns">Campanhas</button>
+      <button data-view="contacts">Contatos</button>
+      <button data-view="senders">Envios</button>
+      <button data-view="settings">Configurações</button>
+    </nav>
+  </aside>
+  <main class="content">
+    <section class="view" id="view-overview">
+      <div class="topbar">
+        <div>
+          <div class="eyebrow" style="color:#1d4ed8;">Operação</div>
+          <h2>Central de controle de campanhas</h2>
+          <p>Monitore a fila, acompanhe retorno real de entrega via webhook e opere disparos com mais segurança.</p>
+        </div>
+        <div class="row">
+          <button class="primary-btn" onclick="switchView('campaigns')">Nova campanha</button>
+          <button class="secondary-btn" onclick="refreshAll()">Atualizar</button>
+        </div>
+      </div>
+      <div class="section">
+        <div class="grid-4">
+          <div class="card metric success"><div class="label">Enviadas</div><div class="value" id="stat-sent">0</div><p class="muted">Mensagens processadas com sucesso</p></div>
+          <div class="card metric danger"><div class="label">Falhas</div><div class="value" id="stat-failed">0</div><p class="muted">Erros permanentes e temporários</p></div>
+          <div class="card metric primary"><div class="label">Ativas</div><div class="value" id="stat-active">0</div><p class="muted">Campanhas na fila ou em execução</p></div>
+          <div class="card metric warning"><div class="label">Filtradas</div><div class="value" id="stat-dedup">0</div><p class="muted">Duplicados e contatos suprimidos</p></div>
+        </div>
+        <div class="grid-main">
+          <div class="card">
+            <div class="card-head"><div><div class="label">Campanhas</div><h3>Visão operacional</h3></div><button class="ghost-btn" onclick="loadJobs()">Atualizar tabela</button></div>
+            <div class="table-wrap"><table class="table"><thead><tr><th>ID</th><th>Status</th><th>Total</th><th>Enviados</th><th>Erros</th><th>Atualizada</th></tr></thead><tbody id="overview-jobs"><tr><td colspan="6" class="empty">Nenhuma campanha encontrada.</td></tr></tbody></table></div>
+          </div>
+          <div class="section">
+            <div class="card">
+              <div class="label">Campanha selecionada</div><h3 id="selected-job-title">Nenhuma campanha</h3><p class="muted" id="selected-job-meta">Selecione uma campanha para ver detalhes.</p>
+              <div class="progress"><div id="selected-progress"></div></div>
+              <div class="row" style="margin-top:14px;"><span class="pill" id="selected-progress-text">0/0 (0%)</span><span class="pill" id="selected-job-status">aguardando</span></div>
+              <div class="row" style="margin-top:10px;" id="selected-delivery-row"><span class="pill">delivered 0</span><span class="pill">read 0</span><span class="pill">falha 0</span></div>
+              <div class="row" style="margin-top:16px;"><button class="secondary-btn" onclick="jobAction('pause')">Pausar</button><button class="secondary-btn" onclick="jobAction('resume')">Retomar</button><button class="danger-btn" onclick="jobAction('cancel')">Cancelar</button><button class="ghost-btn" onclick="jobAction('retry-temporary')">Retry falhas</button></div>
+            </div>
+            <div class="card">
+              <div class="card-head"><div><div class="label">Webhook</div><h3>Eventos recentes</h3></div><button class="secondary-btn" onclick="loadWebhookEvents()">Atualizar</button></div>
+              <div class="list" id="webhook-events"><div class="list-item empty">Nenhum evento carregado.</div></div>
+            </div>
+            <div class="card">
+              <div class="label">Últimos contatos</div><h3>Log da campanha</h3>
+              <div class="log" id="recent-contacts" style="margin-top:16px;"><div class="log-item empty">Nenhum contato processado ainda.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view hidden" id="view-campaigns">
+      <div class="topbar">
+        <div>
+          <div class="eyebrow" style="color:#1d4ed8;">Campanhas</div>
+          <h2>Criação e gestão da fila</h2>
+          <p>Importe a base, confira a limpeza local e envie para a fila persistente.</p>
+        </div>
+      </div>
+      <div class="section">
+        <div class="grid-main">
+          <div class="card">
+            <div class="label">Nova campanha</div><h3>Importar base e iniciar fila</h3>
+            <div class="dropzone" id="upload-zone" onclick="document.getElementById('bulk-file').click()" ondragover="event.preventDefault();this.classList.add('active');" ondragleave="this.classList.remove('active');" ondrop="handleDrop(event)">
+              <strong id="upload-title">Arraste CSV ou XLSX aqui</strong>
+              <p class="muted" style="margin-top:10px;">Colunas aceitas: <span class="mono">telefone</span> e <span class="mono">nome</span>. Máximo operacional: 10.000 contatos.</p>
+              <input id="bulk-file" type="file" accept=".csv,.xlsx,.xls" style="display:none" onchange="handleFile(this.files[0])">
+            </div>
+            <div class="form-grid" style="margin-top:18px;">
+              <div class="full"><label>Mensagem</label><textarea id="bulk-message" placeholder="Use {nome} para personalização."></textarea></div>
+              <div><label>Delay entre envios</label><input type="number" id="bulk-delay" min="0.5" step="0.5" value="1"></div>
+              <div><label>Contatos prontos</label><input type="text" id="bulk-count" value="0 contatos" readonly></div>
+              <div><label>Teste piloto</label><input type="number" id="bulk-pilot-size" min="0" step="1" value="0" placeholder="0 = campanha completa"></div>
+            </div>
+            <p class="muted" id="bulk-placeholders" style="margin-top:12px;">Placeholders disponíveis após importar a base: <span class="mono">{nome}</span></p>
+            <div class="row" style="margin-top:18px;"><button class="primary-btn" id="bulk-submit" onclick="startCampaign()">Criar campanha</button><button class="secondary-btn" onclick="resetUpload()">Limpar</button></div>
+            <div class="result" id="bulk-result"></div>
+          </div>
+          <div class="card">
+            <div class="label">Template</div><h3>Campanha por template aprovado</h3>
+            <div class="form-grid" style="margin-top:16px;">
+              <div><label>Nome do template</label><input type="text" id="bulk-template-name" placeholder="ex.: cobranca_v1"></div>
+              <div><label>Idioma</label><input type="text" id="bulk-template-lang" value="pt_BR"></div>
+              <div class="full"><label>Texto principal do body</label><textarea id="bulk-template-body" placeholder="Ex.: Olá {nome}, sua consulta está confirmada para amanhã às 09h."></textarea></div>
+              <div class="full"><label>JSON avançado de componentes</label><textarea id="bulk-template-components" placeholder='Opcional. Ex.: [{"type":"body","parameters":[{"type":"text","text":"Olá {nome}"}]}]'></textarea></div>
+            </div>
+            <div class="row" style="margin-top:18px;"><button class="primary-btn" id="bulk-template-submit" onclick="startTemplateCampaign()">Criar campanha por template</button></div>
+            <p class="muted" style="margin-top:12px;">Se o JSON avançado estiver vazio, o painel monta automaticamente um body simples usando o texto principal.</p>
+            <div class="result" id="bulk-template-result"></div>
+          </div>
+          <div class="section">
+            <div class="card">
+              <div class="label">Prévia</div><h3 id="preview-title">Base ainda não carregada</h3><p class="muted" id="preview-meta">A prévia mostra a base após limpeza local e deduplicação.</p>
+              <div class="list" id="contact-preview" style="margin-top:16px;"><div class="list-item empty">Nenhum arquivo selecionado.</div></div>
+            </div>
+            <div class="card">
+              <div class="label">Critérios operacionais</div><h3>Checklist antes do disparo</h3>
+              <div class="list" style="margin-top:16px;"><div class="list-item">Use apenas contatos com opt-in válido.</div><div class="list-item">Monitore falhas temporárias antes de reenfileirar.</div><div class="list-item">Evite usar a mesma base repetidamente sem segmentação.</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><div class="label">Fila</div><h3>Campanhas registradas</h3></div><button class="ghost-btn" onclick="loadJobs()">Atualizar</button></div>
+          <div class="form-grid" style="margin-bottom:16px;"><div><label>Filtrar status</label><input type="text" id="jobs-filter-status" placeholder="running, finished..."></div><div><label>Buscar Job ID</label><input type="text" id="jobs-filter-query" placeholder="parte do ID"></div></div>
+          <div class="table-wrap"><table class="table"><thead><tr><th>ID</th><th>Status</th><th>Total</th><th>Enviados</th><th>Erros</th><th>Filtrados</th><th>Fim</th><th>Ações</th></tr></thead><tbody id="jobs-table"><tr><td colspan="8" class="empty">Nenhuma campanha encontrada.</td></tr></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view hidden" id="view-contacts">
+      <div class="topbar">
+        <div>
+          <div class="eyebrow" style="color:#1d4ed8;">Contatos</div>
+          <h2>Busca e histórico operacional</h2>
+          <p>Consulte contatos processados, filtre por campanha e acompanhe o histórico de auditoria.</p>
+        </div>
+      </div>
+      <div class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="label">Filtro de contatos</div><h3>Buscar processamento</h3>
+            <div class="form-grid" style="margin-top:16px;">
+              <div><label>Job ID</label><input type="text" id="contacts-job-id" placeholder="Opcional"></div>
+              <div><label>Status</label><input type="text" id="contacts-status" placeholder="sent, failed, paused..."></div>
+              <div class="full"><label>Busca</label><input type="text" id="contacts-query" placeholder="telefone, nome ou message_id"></div>
+            </div>
+            <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="loadContacts()">Buscar contatos</button></div>
+          </div>
+          <div class="card">
+            <div class="label">Auditoria</div><h3>Eventos do sistema</h3>
+            <div class="row" style="margin-top:12px;"><button class="secondary-btn" onclick="loadAudit()">Atualizar auditoria</button></div>
+            <div class="list" id="audit-list" style="margin-top:16px;"><div class="list-item empty">Nenhum evento carregado.</div></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-head"><div><div class="label">Contatos processados</div><h3>Lista recente</h3></div><button class="ghost-btn" onclick="loadContacts()">Atualizar</button></div>
+          <div class="table-wrap"><table class="table"><thead><tr><th>Job</th><th>Telefone</th><th>Status</th><th>Delivery</th><th>Mensagem</th><th>Atualizado</th></tr></thead><tbody id="contacts-table"><tr><td colspan="6" class="empty">Nenhum contato carregado.</td></tr></tbody></table></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view hidden" id="view-senders">
+      <div class="topbar">
+        <div>
+          <div class="eyebrow" style="color:#1d4ed8;">Envios unitários</div>
+          <h2>Operações diretas</h2>
+          <p>Use para testes pontuais de texto, mídia e template.</p>
+        </div>
+      </div>
+      <div class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="label">Texto</div><h3>Enviar mensagem de texto</h3>
+            <div class="form-grid" style="margin-top:16px;"><div class="full"><label>Número com DDI</label><input type="text" id="txt-to" placeholder="5541999999999"></div><div class="full"><label>Mensagem</label><textarea id="txt-message"></textarea></div></div>
+            <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="sendText()">Enviar texto</button></div><div class="result" id="text-result"></div>
+          </div>
+          <div class="card">
+            <div class="label">Mídia</div><h3>Enviar URL pública</h3>
+            <div class="form-grid" style="margin-top:16px;">
+              <div><label>Número com DDI</label><input type="text" id="media-to" placeholder="5541999999999"></div>
+              <div><label>Tipo</label><select id="media-type"><option value="image">image</option><option value="video">video</option><option value="audio">audio</option><option value="document">document</option><option value="sticker">sticker</option></select></div>
+              <div class="full"><label>URL pública</label><input type="text" id="media-url"></div>
+              <div class="full"><label>Legenda</label><textarea id="media-caption"></textarea></div>
+            </div>
+            <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="sendMedia()">Enviar mídia</button></div><div class="result" id="media-result"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="label">Template</div><h3>Enviar template simples</h3>
+          <div class="form-grid" style="margin-top:16px;"><div><label>Número com DDI</label><input type="text" id="tpl-to"></div><div><label>Idioma</label><input type="text" id="tpl-lang" value="pt_BR"></div><div class="full"><label>Nome do template</label><input type="text" id="tpl-name"></div></div>
+          <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="sendTemplate()">Enviar template</button></div><div class="result" id="template-result"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view hidden" id="view-settings">
+      <div class="topbar">
+        <div>
+          <div class="eyebrow" style="color:#1d4ed8;">Configuração</div>
+          <h2>Conexão, supressão e governança</h2>
+          <p>Configure o acesso ao backend e mantenha a lista de supressão sob controle.</p>
+        </div>
+      </div>
+      <div class="section">
+        <div class="grid-2">
+          <div class="card">
+            <div class="label">Clientes</div><h3>OperaÃ§Ã£o multi-cliente</h3>
+            <div class="form-grid" style="margin-top:16px;">
+              <div><label>Novo cliente</label><input type="text" id="new-client-name" placeholder="Nome comercial do cliente"></div>
+              <div><label>Modo inicial</label><select id="new-client-simulation"><option value="true">SimulaÃ§Ã£o local</option><option value="false">ProduÃ§Ã£o com Meta</option></select></div>
+              <div class="full"><label>ObservaÃ§Ãµes</label><input type="text" id="new-client-notes" placeholder="Ex.: clÃ­nica, cobranÃ§a, suporte"></div>
+            </div>
+            <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="createClient()">Criar cliente</button><button class="secondary-btn" onclick="loadClients()">Atualizar lista</button></div>
+            <div class="result" id="client-result"></div>
+          </div>
+          <div class="card">
+            <div class="label">Credenciais Meta</div><h3>Configurar cliente selecionado</h3>
+            <div class="form-grid" style="margin-top:16px;">
+              <div class="full"><label>URL da API</label><input type="text" id="cfg-url" value=""></div>
+              <div class="full"><label>Nome do cliente</label><input type="text" id="cfg-client-name" placeholder="Nome exibido no painel"></div>
+              <div class="full"><label>Access Token</label><input type="text" id="env-access-token" placeholder="Token permanente da Meta"></div>
+              <div><label>Phone Number ID</label><input type="text" id="env-phone-number-id" placeholder="ID do número"></div>
+              <div><label>WABA ID</label><input type="text" id="env-waba-id" placeholder="WhatsApp Business Account ID"></div>
+              <div><label>API Version</label><input type="text" id="env-api-version" value="v19.0"></div>
+              <div><label>Webhook Verify Token</label><input type="text" id="env-webhook-token" placeholder="Token do webhook"></div>
+              <div><label>Modo operacional</label><select id="env-simulation-mode"><option value="true">Simulação local</option><option value="false">Produção com Meta</option></select></div>
+              <div class="full"><label>API Key da aplicação</label><input type="text" id="cfg-key" placeholder="Chave usada pelo painel e pela API"></div>
+              <div class="full"><label>Observações do cliente</label><input type="text" id="cfg-client-notes" placeholder="Notas operacionais internas"></div>
+            </div>
+            <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="saveConfig()">Salvar cliente</button><button class="secondary-btn" onclick="loadSystemConfig()">Recarregar cliente</button><button class="secondary-btn" onclick="checkStatus()">Testar conexão</button></div>
+            <div class="result" id="config-result"></div>
+          </div>
+          <div class="card">
+            <div class="label">Diagnóstico</div><h3>Prontidão operacional do cliente</h3>
+            <div class="row" style="margin-top:12px;"><button class="secondary-btn" onclick="loadDiagnostics()">Atualizar diagnóstico</button></div>
+            <div class="list" id="diagnostics-list" style="margin-top:16px;"><div class="list-item empty">Nenhum diagnóstico carregado.</div></div>
+          </div>
+          <div class="card">
+            <div class="label">Supressão</div><h3>Bloquear números da fila</h3>
+            <div class="form-grid" style="margin-top:16px;"><div><label>Telefone</label><input type="text" id="sup-phone" placeholder="5541999999999"></div><div><label>Motivo</label><input type="text" id="sup-reason" placeholder="Opt-out, blacklist, inválido"></div></div>
+            <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="addSuppression()">Adicionar</button><button class="secondary-btn" onclick="loadSuppression()">Atualizar lista</button></div>
+            <div class="list" id="suppression-list" style="margin-top:16px;"><div class="list-item empty">Nenhum número carregado.</div></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="label">Backups</div><h3>Segurança operacional</h3>
+            <div class="row" style="margin-top:12px;"><button class="primary-btn" onclick="createBackup()">Criar backup</button><button class="secondary-btn" onclick="loadBackups()">Atualizar backups</button></div>
+            <div class="row" style="margin-top:12px;"><input type="file" id="restore-backup-file" accept=".zip"><button class="danger-btn" onclick="restoreBackup()">Restaurar backup</button></div>
+            <div class="list" id="backup-list" style="margin-top:16px;"><div class="list-item empty">Nenhum backup carregado.</div></div>
+          </div>
+          <div class="card">
+            <div class="label">Operador</div><h3>Identidade de operação</h3>
+            <div class="form-grid" style="margin-top:16px;"><div class="full"><label>Nome do operador</label><input type="text" id="operator-name" placeholder="Quem está operando o sistema"></div></div>
+            <div class="row" style="margin-top:16px;"><button class="secondary-btn" onclick="saveOperator()">Salvar operador</button><button class="ghost-btn" onclick="runSelfTest()">Rodar diagnóstico local</button></div>
+            <p class="muted" style="margin-top:12px;">Usado para trilha de auditoria nas próximas ações.</p>
+            <div class="result" id="self-test-result"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+<script>
+const state = { uploadedFile: null, contacts: [], selectedJobId: null, jobs: [], clients: [], selectedClientId: localStorage.getItem("client_id")||"" };
+function defaultBase(){if(window.location.protocol==="http:"||window.location.protocol==="https:")return window.location.origin;return "http://localhost:8000"}
+function getBase(){return (localStorage.getItem("api_url")||document.getElementById("cfg-url")?.value||defaultBase()).replace(/\/$/,"")}
+function getKey(){return sessionStorage.getItem("api_key")||document.getElementById("cfg-key")?.value||""}
+function getClientId(){return state.selectedClientId||localStorage.getItem("client_id")||document.getElementById("client-selector")?.value||""}
+function getOperator(){return localStorage.getItem("operator_name")||document.getElementById("operator-name")?.value||""}
+function apiHeaders(json=true){const h={"x-api-key":getKey(),"x-operator":getOperator()};if(getClientId())h["x-client-id"]=getClientId();if(json)h["Content-Type"]="application/json";return h}
+async function loadClients(){try{const items=await request("/clients",{method:"GET",headers:apiHeaders(false)});state.clients=items;const select=document.getElementById("client-selector");const fallback=(state.selectedClientId&&items.find(item=>item.id===state.selectedClientId)?.id)||(items[0]?.id||"");state.selectedClientId=fallback;localStorage.setItem("client_id",fallback);select.innerHTML=items.length?items.map(item=>`<option value="${item.id}" ${item.id===fallback?"selected":""}>${item.name}</option>`).join(""):`<option value="">Nenhum cliente</option>`}catch(error){console.warn(error.message)}}
+function changeClient(clientId){state.selectedClientId=clientId||"";localStorage.setItem("client_id",state.selectedClientId);state.selectedJobId=null;loadSystemConfig();refreshAll()}
+async function createClient(){const name=document.getElementById("new-client-name").value.trim();if(!name)return alert("Digite o nome do cliente.");const payload={name,simulation_mode:document.getElementById("new-client-simulation").value==="true",notes:document.getElementById("new-client-notes").value.trim()};try{const data=await request("/clients",{method:"POST",body:JSON.stringify(payload)});showResult("client-result",data,true);document.getElementById("new-client-name").value="";document.getElementById("new-client-notes").value="";await loadClients();changeClient(data.id)}catch(error){showResult("client-result",{error:error.message},false)}}
+async function saveConfig(){const base=document.getElementById("cfg-url").value.trim()||defaultBase();localStorage.setItem("api_url",base);const payload={name:document.getElementById("cfg-client-name").value.trim(),access_token:document.getElementById("env-access-token").value.trim(),phone_number_id:document.getElementById("env-phone-number-id").value.trim(),whatsapp_business_account_id:document.getElementById("env-waba-id").value.trim(),api_version:document.getElementById("env-api-version").value.trim()||"v19.0",api_key:document.getElementById("cfg-key").value.trim(),webhook_verify_token:document.getElementById("env-webhook-token").value.trim(),simulation_mode:document.getElementById("env-simulation-mode").value==="true",notes:document.getElementById("cfg-client-notes").value.trim()};try{sessionStorage.setItem("api_key",payload.api_key);const response=await fetch(`${getBase()}/system/config`,{method:"POST",headers:apiHeaders(true),body:JSON.stringify(payload)});const data=await response.json();if(!response.ok)throw new Error(data.detail||`Erro ${response.status}`);showResult("config-result",data,true);await loadClients();await loadSystemConfig();await checkStatus()}catch(error){showResult("config-result",{error:error.message},false)}}
+async function loadSystemConfig(){if(!getClientId())return;try{const data=await request("/system/config",{method:"GET",headers:apiHeaders(false)});document.getElementById("cfg-client-name").value=data.name||"";document.getElementById("env-access-token").value=data.access_token||"";document.getElementById("env-phone-number-id").value=data.phone_number_id||"";document.getElementById("env-waba-id").value=data.whatsapp_business_account_id||"";document.getElementById("env-api-version").value=data.api_version||"v19.0";document.getElementById("cfg-key").value=data.api_key||"";document.getElementById("env-webhook-token").value=data.webhook_verify_token||"";document.getElementById("env-simulation-mode").value=String(data.simulation_mode!==false);document.getElementById("cfg-client-notes").value=data.notes||"";if(data.api_key){sessionStorage.setItem("api_key",data.api_key)}}catch(error){console.warn(error.message)}}
+function loadConfig(){const url=localStorage.getItem("api_url")||defaultBase();const operator=localStorage.getItem("operator_name");document.getElementById("cfg-url").value=url;if(operator&&document.getElementById("operator-name"))document.getElementById("operator-name").value=operator}
+function saveOperator(){localStorage.setItem("operator_name",document.getElementById("operator-name").value.trim())}
+function switchView(view){document.querySelectorAll(".view").forEach(n=>n.classList.add("hidden"));document.getElementById(`view-${view}`).classList.remove("hidden");document.querySelectorAll(".nav button").forEach(n=>n.classList.toggle("active",n.dataset.view===view))}
+document.querySelectorAll(".nav button").forEach(button=>button.addEventListener("click",()=>switchView(button.dataset.view)));
+function showResult(id,data,ok){const el=document.getElementById(id);el.style.display="block";el.className=`result ${ok?"ok":"err"}`;el.textContent=JSON.stringify(data,null,2)}
+async function request(path,options={}){const response=await fetch(getBase()+path,{...options,headers:options.headers||apiHeaders(!options.body||typeof options.body==="string")});const contentType=response.headers.get("content-type")||"";const data=contentType.includes("application/json")?await response.json():await response.text();if(!response.ok)throw new Error(data.detail||data.message||data||`Erro ${response.status}`);return data}
+function formatDate(value){return value?value.replace("T"," ").replace("Z",""):"-"}
+function statusPill(status){return `<span class="pill ${status}">${status}</span>`}
+function escapeHtml(value){return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
+async function checkStatus(){try{const data=await request("/health",{method:"GET",headers:apiHeaders(false)});document.getElementById("api-dot").className="status-dot online";document.getElementById("api-status").textContent=data.simulation_mode?"Simulação ativa":"API online";const mode=data.simulation_mode?"Modo: simulação local":"Modo: produção Meta";const config=data.meta_configured?"Meta configurada":"Meta ainda não configurada";document.getElementById("api-meta").textContent=`${mode} • ${config} • Número: ${data.phone_number_id}`;showResult("config-result",data,true)}catch(error){document.getElementById("api-dot").className="status-dot offline";document.getElementById("api-status").textContent="API offline";document.getElementById("api-meta").textContent=error.message;showResult("config-result",{error:error.message},false)}}
+async function loadDiagnostics(){try{const data=await request("/clients/current/diagnostics",{method:"GET",headers:apiHeaders(false)});const items=[];items.push(`<div class="list-item"><div class="row" style="justify-content:space-between;"><strong>${escapeHtml(data.name||data.client_id)}</strong>${statusPill(data.ready_for_live?"finished":(data.simulation_mode?"paused":"failed"))}</div><div class="muted" style="margin-top:6px;">Modo ${data.simulation_mode?"simulação":"produção"} • API ${escapeHtml(data.api_version||"-")} • Número ${escapeHtml(data.phone_number_id||"não configurado")}</div></div>`);if(data.callback_url){items.push(`<div class="list-item"><strong>Callback URL</strong><div class="muted" style="margin-top:6px;">${escapeHtml(data.callback_url)}</div></div>`)}if(data.access_token_masked||data.webhook_verify_token_masked){items.push(`<div class="list-item"><strong>Segredos mascarados</strong><div class="muted" style="margin-top:6px;">Token ${escapeHtml(data.access_token_masked||"não configurado")} • Verify ${escapeHtml(data.webhook_verify_token_masked||"não configurado")}</div></div>`)}(data.warnings||[]).forEach(item=>items.push(`<div class="list-item"><strong>Atenção</strong><div class="muted" style="margin-top:6px;">${escapeHtml(item)}</div></div>`));(data.recommendations||[]).forEach(item=>items.push(`<div class="list-item"><strong>Recomendação</strong><div class="muted" style="margin-top:6px;">${escapeHtml(item)}</div></div>`));document.getElementById("diagnostics-list").innerHTML=items.join("")||`<div class="list-item empty">Nenhum diagnóstico disponível.</div>`;return data}catch(error){document.getElementById("diagnostics-list").innerHTML=`<div class="list-item empty">${escapeHtml(error.message)}</div>`;return null}}
+async function loadDashboard(){try{const data=await request("/bulk/dashboard",{method:"GET",headers:apiHeaders(false)});document.getElementById("stat-sent").textContent=data.sent;document.getElementById("stat-failed").textContent=data.failed+data.temporary_failures;document.getElementById("stat-active").textContent=data.active_jobs;document.getElementById("stat-dedup").textContent=data.deduplicated}catch(error){console.warn(error.message)}}
+async function loadJobs(){try{const status=document.getElementById("jobs-filter-status")?.value?.trim()||"";const q=document.getElementById("jobs-filter-query")?.value?.trim()||"";const params=new URLSearchParams();if(status)params.set("status",status);if(q)params.set("q",q);const jobs=await request(`/bulk/jobs${params.toString()?`?${params.toString()}`:""}`,{method:"GET",headers:apiHeaders(false)});state.jobs=jobs;const overview=document.getElementById("overview-jobs");const jobsTable=document.getElementById("jobs-table");if(!jobs.length){overview.innerHTML=`<tr><td colspan="6" class="empty">Nenhuma campanha encontrada.</td></tr>`;jobsTable.innerHTML=`<tr><td colspan="8" class="empty">Nenhuma campanha encontrada.</td></tr>`;return}overview.innerHTML=jobs.slice(0,8).map(job=>`<tr onclick="selectJob('${job.job_id}')" style="cursor:pointer;"><td><strong>${job.job_id}</strong></td><td>${statusPill(job.status)}</td><td>${job.total}</td><td>${job.enviados}</td><td>${job.erros+job.falhas_temporarias}</td><td>${formatDate(job.updated_at)}</td></tr>`).join("");jobsTable.innerHTML=jobs.map(job=>`<tr><td><strong>${job.job_id}</strong></td><td>${statusPill(job.status)}</td><td>${job.total}</td><td>${job.enviados}</td><td>${job.erros+job.falhas_temporarias}</td><td>${job.deduplicados}</td><td>${formatDate(job.finalizado_em)}</td><td><div class="row"><button class="ghost-btn" onclick="selectJob('${job.job_id}')">Abrir</button><button class="secondary-btn" onclick="downloadReport('${job.job_id}')">CSV</button></div></td></tr>`).join("");if(!state.selectedJobId&&jobs[0])await selectJob(jobs[0].job_id)}catch(error){console.warn(error.message)}}
+async function selectJob(jobId){state.selectedJobId=jobId;await loadJobStatus(jobId);switchView("overview")}
+async function loadJobStatus(jobId=state.selectedJobId){if(!jobId)return;try{const data=await request(`/bulk/status/${jobId}`,{method:"GET",headers:apiHeaders(false)});const pct=Number((/\(([\d.]+)%\)/.exec(data.progresso||"")||[])[1]||0);document.getElementById("selected-job-title").textContent=`Campanha ${jobId}`;document.getElementById("selected-job-meta").textContent=`Criada em ${formatDate(data.criado_em)} • filtrados ${data.deduplicados} • falhas temporárias ${data.falhas_temporarias}`;document.getElementById("selected-progress").style.width=`${pct}%`;document.getElementById("selected-progress-text").textContent=data.progresso;document.getElementById("selected-job-status").outerHTML=statusPill(data.status).replace("<span",'<span id="selected-job-status"');const delivery=data.delivery||{};document.getElementById("selected-delivery-row").innerHTML=`<span class="pill delivered">delivered ${delivery.delivered||0}</span><span class="pill read">read ${delivery.read_count||0}</span><span class="pill failed">falha ${delivery.delivery_failed||0}</span>`;const host=document.getElementById("recent-contacts");host.innerHTML=(data.recent_contacts&&data.recent_contacts.length?data.recent_contacts.map(item=>`<div class="log-item"><div class="row" style="justify-content:space-between;"><strong>${item.phone}</strong>${statusPill(item.status)}</div><div class="muted" style="margin-top:8px;">tentativas ${item.attempts} • entrega ${item.delivery_status||"sem retorno"}</div><div class="muted" style="margin-top:4px;">${item.delivery_error||item.error||item.message_id||"sem detalhes"}</div></div>`).join(""):`<div class="log-item empty">Nenhum contato processado ainda.</div>`)}catch(error){console.warn(error.message)}}
+async function loadWebhookEvents(){try{const items=await request("/webhooks/events",{method:"GET",headers:apiHeaders(false)});const host=document.getElementById("webhook-events");host.innerHTML=items.length?items.map(item=>`<div class="list-item"><div class="row" style="justify-content:space-between;"><strong>${item.event_type}</strong><span class="muted">${formatDate(item.created_at)}</span></div><div class="muted" style="margin-top:6px;">${item.wa_id||"-"} • ${item.message_id||"sem message_id"}</div></div>`).join(""):`<div class="list-item empty">Nenhum evento recebido.</div>`}catch(error){console.warn(error.message)}}
+async function jobAction(action){if(!state.selectedJobId)return;try{await request(`/bulk/${action}/${state.selectedJobId}`,{method:"POST",headers:apiHeaders(false)});await refreshAll()}catch(error){alert(error.message)}}
+async function downloadReport(jobId){try{const response=await fetch(`${getBase()}/bulk/report/${jobId}`,{headers:apiHeaders(false)});if(!response.ok){const data=await response.json();throw new Error(data.detail||`Erro ${response.status}`)}const blob=await response.blob();const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=`relatorio_${jobId}.csv`;link.click();URL.revokeObjectURL(url)}catch(error){alert(error.message)}}
+function handleDrop(event){event.preventDefault();document.getElementById("upload-zone").classList.remove("active");handleFile(event.dataTransfer.files[0])}
+function resetUpload(){state.uploadedFile=null;state.contacts=[];document.getElementById("bulk-file").value="";document.getElementById("bulk-count").value="0 contatos";document.getElementById("upload-title").textContent="Arraste CSV ou XLSX aqui";document.getElementById("preview-title").textContent="Base ainda não carregada";document.getElementById("preview-meta").textContent="A prévia mostra a base após limpeza local e deduplicação.";document.getElementById("bulk-placeholders").innerHTML='Placeholders disponíveis após importar a base: <span class="mono">{nome}</span>';document.getElementById("contact-preview").innerHTML=`<div class="list-item empty">Nenhum arquivo selecionado.</div>`}
+function normalizeKey(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g,"_").replace(/^_+|_+$/g,"")}
+function buildTemplateComponents(){const advanced=document.getElementById("bulk-template-components")?.value?.trim()||"";if(advanced)return advanced;const body=document.getElementById("bulk-template-body")?.value?.trim()||"";if(!body)return "[]";return JSON.stringify([{type:"body",parameters:[{type:"text",text:body}]}])}
+function normalizeContacts(rows,headers,phoneIndex,nameIndex){const normalizedHeaders=headers.map(normalizeKey);const dedup=new Map();for(const row of rows){const phone=String(row[phoneIndex]||"").replace(/\D/g,"");if(phone.length<10||phone.length>15)continue;if(!dedup.has(phone)){const contact={phone,name:String(row[nameIndex]||"").trim()};normalizedHeaders.forEach((key,index)=>{if(key)contact[key]=String(row[index]||"").trim()});dedup.set(phone,contact)}}state.contacts=Array.from(dedup.values()).slice(0,10000);document.getElementById("bulk-count").value=`${state.contacts.length} contatos`;document.getElementById("preview-title").textContent=state.uploadedFile.name;document.getElementById("preview-meta").textContent=`${state.contacts.length} contatos válidos após limpeza local.`;const placeholderKeys=Object.keys(state.contacts[0]||{}).filter(key=>!["phone","name"].includes(key)).slice(0,8);const placeholderText=["{nome}",...placeholderKeys.map(key=>`{${key}}`)];document.getElementById("bulk-placeholders").innerHTML=`Placeholders disponíveis após importar a base: <span class="mono">${placeholderText.join("</span>, <span class='mono'>")}</span>`;document.getElementById("contact-preview").innerHTML=state.contacts.slice(0,8).map(item=>`<div class="list-item"><strong>${item.phone}</strong>${item.name?` • ${item.name}`:""}</div>`).join("")||`<div class="list-item empty">Nenhum contato válido.</div>`}
+function handleFile(file){if(!file)return;state.uploadedFile=file;document.getElementById("upload-title").textContent=file.name;const lower=file.name.toLowerCase();if(lower.endsWith(".xlsx")||lower.endsWith(".xls")){const reader=new FileReader();reader.onload=(event)=>{const workbook=XLSX.read(event.target.result,{type:"array"});const rows=XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]],{header:1});const headers=(rows[0]||[]).map(cell=>String(cell||"").trim());const normalized=headers.map(normalizeKey);const phoneIndex=normalized.findIndex(h=>["telefone","phone","numero","cel","celular"].includes(h));const nameIndex=normalized.findIndex(h=>["nome","name"].includes(h));if(phoneIndex===-1)return alert(`Coluna telefone não encontrada: ${headers.join(", ")}`);normalizeContacts(rows.slice(1),headers,phoneIndex,nameIndex===-1?9999:nameIndex)};reader.readAsArrayBuffer(file)}else{const reader=new FileReader();reader.onload=(event)=>{const text=String(event.target.result||"");const sep=(text.split(/\r?\n/)[0]||"").includes(";")?";":",";const lines=text.split(/\r?\n/).filter(Boolean);const headers=(lines[0]||"").split(sep).map(cell=>cell.trim().replace(/^["']|["']$/g,""));const normalized=headers.map(normalizeKey);const phoneIndex=normalized.findIndex(h=>["telefone","phone","numero","cel","celular"].includes(h));const nameIndex=normalized.findIndex(h=>["nome","name"].includes(h));if(phoneIndex===-1)return alert(`Coluna telefone não encontrada: ${headers.join(", ")}`);const rows=lines.slice(1).map(line=>line.split(sep).map(cell=>cell.trim().replace(/^["']|["']$/g,"")));normalizeContacts(rows,headers,phoneIndex,nameIndex===-1?9999:nameIndex)};reader.readAsText(file,"utf-8")}}
+async function startCampaign(){if(!state.uploadedFile)return alert("Selecione um arquivo.");if(!document.getElementById("bulk-message").value.trim())return alert("Digite a mensagem.");const formData=new FormData();formData.append("file",state.uploadedFile);formData.append("message",document.getElementById("bulk-message").value.trim());formData.append("delay_seconds",document.getElementById("bulk-delay").value||"1");formData.append("pilot_size",document.getElementById("bulk-pilot-size").value||"0");const button=document.getElementById("bulk-submit");button.disabled=true;button.textContent="Criando campanha...";try{const response=await fetch(`${getBase()}/bulk/send`,{method:"POST",headers:{"x-api-key":getKey(),"x-operator":getOperator(),"x-client-id":getClientId()},body:formData});const data=await response.json();if(!response.ok)throw new Error(data.detail||`Erro ${response.status}`);showResult("bulk-result",data,true);state.selectedJobId=data.job_id;switchView("overview");await refreshAll()}catch(error){showResult("bulk-result",{error:error.message},false)}finally{button.disabled=false;button.textContent="Criar campanha"}}
+async function ensureCampaignReady(mode){const diagnostics=await loadDiagnostics();if(!diagnostics)return true;if(mode==="text"&&!diagnostics.simulation_mode&&!diagnostics.ready_for_text_campaign){throw new Error((diagnostics.warnings||["Cliente ainda não está pronto para campanha em produção."]).join(" • "))}if(mode==="template"&&!diagnostics.simulation_mode&&!diagnostics.ready_for_template_campaign){throw new Error((diagnostics.warnings||["Cliente ainda não está pronto para campanha por template."]).join(" • "))}return true}
+async function startCampaign(){if(!state.uploadedFile)return alert("Selecione um arquivo.");if(!document.getElementById("bulk-message").value.trim())return alert("Digite a mensagem.");const formData=new FormData();formData.append("file",state.uploadedFile);formData.append("message",document.getElementById("bulk-message").value.trim());formData.append("delay_seconds",document.getElementById("bulk-delay").value||"1");formData.append("pilot_size",document.getElementById("bulk-pilot-size").value||"0");const button=document.getElementById("bulk-submit");button.disabled=true;button.textContent="Criando campanha...";try{await ensureCampaignReady("text");const response=await fetch(`${getBase()}/bulk/send`,{method:"POST",headers:{"x-api-key":getKey(),"x-operator":getOperator(),"x-client-id":getClientId()},body:formData});const data=await response.json();if(!response.ok)throw new Error(data.detail||`Erro ${response.status}`);showResult("bulk-result",data,true);state.selectedJobId=data.job_id;switchView("overview");await refreshAll()}catch(error){showResult("bulk-result",{error:error.message},false)}finally{button.disabled=false;button.textContent="Criar campanha"}}
+async function startTemplateCampaign(){if(!state.uploadedFile)return alert("Selecione um arquivo.");if(!document.getElementById("bulk-template-name").value.trim())return alert("Digite o nome do template.");const formData=new FormData();formData.append("file",state.uploadedFile);formData.append("template_name",document.getElementById("bulk-template-name").value.trim());formData.append("language_code",document.getElementById("bulk-template-lang").value.trim()||"pt_BR");formData.append("components_json",buildTemplateComponents());formData.append("delay_seconds",document.getElementById("bulk-delay").value||"1");formData.append("pilot_size",document.getElementById("bulk-pilot-size").value||"0");const button=document.getElementById("bulk-template-submit");button.disabled=true;button.textContent="Criando campanha...";try{await ensureCampaignReady("template");const response=await fetch(`${getBase()}/bulk/send-template`,{method:"POST",headers:{"x-api-key":getKey(),"x-operator":getOperator(),"x-client-id":getClientId()},body:formData});const data=await response.json();if(!response.ok)throw new Error(data.detail||`Erro ${response.status}`);showResult("bulk-template-result",data,true);state.selectedJobId=data.job_id;switchView("overview");await refreshAll()}catch(error){showResult("bulk-template-result",{error:error.message},false)}finally{button.disabled=false;button.textContent="Criar campanha por template"}}
+async function sendText(){try{const data=await request("/messages/text",{method:"POST",body:JSON.stringify({to:document.getElementById("txt-to").value,message:document.getElementById("txt-message").value})});showResult("text-result",data,true)}catch(error){showResult("text-result",{error:error.message},false)}}
+async function sendMedia(){try{const data=await request("/media/send",{method:"POST",body:JSON.stringify({to:document.getElementById("media-to").value,media_type:document.getElementById("media-type").value,media_url:document.getElementById("media-url").value,caption:document.getElementById("media-caption").value||null})});showResult("media-result",data,true)}catch(error){showResult("media-result",{error:error.message},false)}}
+async function sendTemplate(){try{const data=await request("/templates/send",{method:"POST",body:JSON.stringify({to:document.getElementById("tpl-to").value,template_name:document.getElementById("tpl-name").value,language_code:document.getElementById("tpl-lang").value})});showResult("template-result",data,true)}catch(error){showResult("template-result",{error:error.message},false)}}
+async function loadSuppression(){try{const items=await request("/bulk/suppression",{method:"GET",headers:apiHeaders(false)});const host=document.getElementById("suppression-list");host.innerHTML=items.length?items.map(item=>`<div class="list-item"><div class="row" style="justify-content:space-between;"><strong>${item.phone}</strong><button class="ghost-btn" onclick="removeSuppression('${item.phone}')">Remover</button></div><div class="muted" style="margin-top:6px;">${item.reason||"sem motivo"} • ${item.source}</div></div>`).join(""):`<div class="list-item empty">Nenhum número em supressão.</div>`}catch(error){console.warn(error.message)}}
+async function addSuppression(){const phone=document.getElementById("sup-phone").value.trim();if(!phone)return alert("Digite um telefone.");const formData=new FormData();formData.append("phone",phone);formData.append("reason",document.getElementById("sup-reason").value.trim());try{const response=await fetch(`${getBase()}/bulk/suppression`,{method:"POST",headers:{"x-api-key":getKey(),"x-client-id":getClientId()},body:formData});const data=await response.json();if(!response.ok)throw new Error(data.detail||`Erro ${response.status}`);document.getElementById("sup-phone").value="";document.getElementById("sup-reason").value="";await loadSuppression()}catch(error){alert(error.message)}}
+async function removeSuppression(phone){try{await request(`/bulk/suppression/${phone}`,{method:"DELETE",headers:apiHeaders(false)});await loadSuppression()}catch(error){alert(error.message)}}
+async function loadContacts(){try{const job_id=document.getElementById("contacts-job-id")?.value?.trim()||"";const status=document.getElementById("contacts-status")?.value?.trim()||"";const q=document.getElementById("contacts-query")?.value?.trim()||"";const params=new URLSearchParams();if(job_id)params.set("job_id",job_id);if(status)params.set("status",status);if(q)params.set("q",q);const items=await request(`/bulk/contacts${params.toString()?`?${params.toString()}`:""}`,{method:"GET",headers:apiHeaders(false)});document.getElementById("contacts-table").innerHTML=items.length?items.map(item=>`<tr><td>${item.job_id}</td><td>${item.phone}</td><td>${statusPill(item.status)}</td><td>${item.delivery_status||'-'}</td><td>${(item.personalized_message||'').slice(0,80)}</td><td>${formatDate(item.updated_at)}</td></tr>`).join(""):`<tr><td colspan="6" class="empty">Nenhum contato encontrado.</td></tr>`}catch(error){console.warn(error.message)}}
+async function loadAudit(){try{const items=await request("/admin/audit",{method:"GET",headers:apiHeaders(false)});document.getElementById("audit-list").innerHTML=items.length?items.slice(0,20).map(item=>`<div class="list-item"><div class="row" style="justify-content:space-between;"><strong>${item.event_type}</strong><span class="muted">${formatDate(item.created_at)}</span></div><div class="muted" style="margin-top:6px;">${item.entity_type} ${item.entity_id||''} • ${item.operator||'sem operador'}</div></div>`).join(""):`<div class="list-item empty">Nenhum evento carregado.</div>`}catch(error){console.warn(error.message)}}
+async function loadBackups(){try{const items=await request("/admin/backups",{method:"GET",headers:apiHeaders(false)});document.getElementById("backup-list").innerHTML=items.length?items.map(item=>`<div class="list-item"><div class="row" style="justify-content:space-between;"><strong>${item.name}</strong><button class="ghost-btn" onclick="downloadBackup('${item.name}')">Baixar</button></div><div class="muted" style="margin-top:6px;">${formatDate(item.updated_at)} • ${item.size} bytes</div></div>`).join(""):`<div class="list-item empty">Nenhum backup criado.</div>`}catch(error){console.warn(error.message)}}
+async function createBackup(){try{await request("/admin/backups",{method:"POST",headers:apiHeaders(false)});await loadBackups();await loadAudit()}catch(error){alert(error.message)}}
+async function downloadBackup(name){try{const response=await fetch(`${getBase()}/admin/backups/download/${name}`,{headers:apiHeaders(false)});if(!response.ok){const data=await response.json();throw new Error(data.detail||`Erro ${response.status}`)}const blob=await response.blob();const url=URL.createObjectURL(blob);const link=document.createElement("a");link.href=url;link.download=name;link.click();URL.revokeObjectURL(url)}catch(error){alert(error.message)}}
+async function restoreBackup(){const file=document.getElementById("restore-backup-file").files[0];if(!file)return alert("Selecione um backup .zip.");const formData=new FormData();formData.append("file",file);try{const response=await fetch(`${getBase()}/admin/backups/restore`,{method:"POST",headers:{"x-api-key":getKey(),"x-operator":getOperator(),"x-client-id":getClientId()},body:formData});const data=await response.json();if(!response.ok)throw new Error(data.detail||`Erro ${response.status}`);await loadSystemConfig();await refreshAll();await loadBackups();await loadAudit();alert("Backup restaurado com sucesso.")}catch(error){alert(error.message)}}
+async function runSelfTest(){try{const data=await request("/admin/self-test",{method:"POST",headers:apiHeaders(false)});showResult("self-test-result",data,true);await refreshAll()}catch(error){showResult("self-test-result",{error:error.message},false)}}
+async function refreshAll(){await Promise.all([checkStatus(),loadDashboard(),loadJobs(),loadSuppression(),loadWebhookEvents(),loadBackups(),loadAudit(),loadContacts(),loadDiagnostics()]);await loadJobStatus()}
+async function initPanel(){loadConfig();await loadClients();await loadSystemConfig();await refreshAll();setInterval(refreshAll,12000)}
+initPanel();
+</script>
+</body>
+</html>
