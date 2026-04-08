@@ -56,13 +56,13 @@ class Settings:
         self.WHATSAPP_BUSINESS_ACCOUNT_ID = os.getenv("WHATSAPP_BUSINESS_ACCOUNT_ID", "")
         self.API_VERSION = os.getenv("API_VERSION", "v19.0")
         self.API_KEY = os.getenv("API_KEY", "")
-        self.SIMULATION_MODE = os.getenv("SIMULATION_MODE", "true")
+        self.SIMULATION_MODE = os.getenv("SIMULATION_MODE", "false")
         self.BULK_DB_PATH = os.getenv("BULK_DB_PATH", "whatsapp_bulk.db")
         self.ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:8000,http://127.0.0.1:8000")
         self.WEBHOOK_VERIFY_TOKEN = os.getenv("WEBHOOK_VERIFY_TOKEN", "")
         self.LOG_FILE_PATH = os.getenv("LOG_FILE_PATH", "logs/app.log")
         self.BACKUP_DIR = os.getenv("BACKUP_DIR", "backups")
-        self.REMOTE_ADMIN_ENABLED = os.getenv("REMOTE_ADMIN_ENABLED", "false")
+        self.REMOTE_ADMIN_ENABLED = os.getenv("REMOTE_ADMIN_ENABLED", "true")
 
     def as_dict(self) -> dict[str, str]:
         return {key: str(getattr(self, key, "")) for key in MANAGED_ENV_KEYS}

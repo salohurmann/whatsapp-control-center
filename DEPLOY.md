@@ -8,7 +8,8 @@ O projeto agora aceita:
 - host dinamico via `HOST`
 - painel usando o mesmo dominio da API por padrao
 - webhook publico em `/webhook`
-- configuracao remota opcional com `REMOTE_ADMIN_ENABLED=true`
+- configuracao remota habilitada por padrao via `REMOTE_ADMIN_ENABLED=true`
+- simulacao desligada por padrao via `SIMULATION_MODE=false`
 
 ## Variaveis de ambiente
 
@@ -31,7 +32,7 @@ BULK_DB_PATH=/data/whatsapp_bulk.db
 WEBHOOK_VERIFY_TOKEN=seu_token_de_verificacao
 LOG_FILE_PATH=/app/logs/app.log
 BACKUP_DIR=/app/backups
-REMOTE_ADMIN_ENABLED=false
+REMOTE_ADMIN_ENABLED=true
 ```
 
 ## Docker
@@ -74,3 +75,4 @@ https://seu-dominio.com/painel
 Se `REMOTE_ADMIN_ENABLED=false`, as configuracoes sensiveis devem ser definidas no painel do provedor.
 Se `REMOTE_ADMIN_ENABLED=true`, o painel remoto pode ler e salvar `.env`, desde que voce informe a `API_KEY`.
 Use o card de diagnostico no painel para confirmar callback URL, prontidao para campanhas e alertas de configuracao antes de operar.
+Para envio real pela Meta, preencha `ACCESS_TOKEN`, `PHONE_NUMBER_ID`, `WHATSAPP_BUSINESS_ACCOUNT_ID`, `WEBHOOK_VERIFY_TOKEN`, `META_APP_SECRET` e `PUBLIC_BASE_URL`.

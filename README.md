@@ -93,9 +93,23 @@ O endpoint legado `/webhooks/meta` continua funcionando.
 
 - acesso em `https://seu-dominio.com/painel`
 - o painel usa o mesmo dominio da API por padrao
-- para editar configuracoes sensiveis remotamente, ative `REMOTE_ADMIN_ENABLED=true`
-- quando `REMOTE_ADMIN_ENABLED=true`, use a `API_KEY` no painel para ler e salvar configuracoes
+- em hospedagem, o projeto agora assume `SIMULATION_MODE=false` por padrao
+- em hospedagem, o projeto agora assume `REMOTE_ADMIN_ENABLED=true` por padrao
+- use a `API_KEY` no painel para ler e salvar configuracoes sensiveis
 - o painel mostra um diagnostico do cliente com callback URL, segredos mascarados e alertas de prontidao
+
+## Para operar com a Meta de verdade
+
+Preencha no painel hospedado ou nas variaveis do provedor:
+
+- `ACCESS_TOKEN`
+- `PHONE_NUMBER_ID`
+- `WHATSAPP_BUSINESS_ACCOUNT_ID`
+- `WEBHOOK_VERIFY_TOKEN`
+- `META_APP_SECRET`
+- `PUBLIC_BASE_URL`
+
+Sem esses valores, o app sobe hospedado, mas nao consegue enviar mensagens reais pela Meta.
 
 ## Observacoes operacionais
 
