@@ -132,7 +132,14 @@ button{border:1px solid transparent;border-radius:12px;padding:12px 16px;cursor:
             <div class="result" id="bulk-result"></div>
           </div>
           <div class="card">
-            <div class="label">Template</div><h3>Campanha por template aprovado</h3>
+            <div class="label">Campanha</div><h3>Disparo em massa com modelo pronto</h3>
+            <p class="muted">Para campanha fria, a Meta ainda exige template aprovado. Aqui o sistema esconde a parte chata: escolha um modelo, ajuste o nome do template aprovado e dispare.</p>
+            <div class="row" style="margin-top:16px;">
+              <button class="ghost-btn" type="button" onclick="applyTemplatePreset('boas_vindas')">Boas-vindas</button>
+              <button class="ghost-btn" type="button" onclick="applyTemplatePreset('cobranca')">Cobrança</button>
+              <button class="ghost-btn" type="button" onclick="applyTemplatePreset('lembrete')">Lembrete</button>
+              <button class="ghost-btn" type="button" onclick="applyTemplatePreset('confirmacao')">Confirmação</button>
+            </div>
             <div class="form-grid" style="margin-top:16px;">
               <div><label>Nome do template</label><input type="text" id="bulk-template-name" placeholder="ex.: cobranca_v1"></div>
               <div><label>Idioma</label><input type="text" id="bulk-template-lang" value="pt_BR"></div>
@@ -140,7 +147,8 @@ button{border:1px solid transparent;border-radius:12px;padding:12px 16px;cursor:
               <div class="full"><label>JSON avanÃ§ado de componentes</label><textarea id="bulk-template-components" placeholder='Opcional. Ex.: [{"type":"body","parameters":[{"type":"text","text":"OlÃ¡ {nome}"}]}]'></textarea></div>
             </div>
             <div class="row" style="margin-top:18px;"><button class="primary-btn" id="bulk-template-submit" onclick="startTemplateCampaign()">Criar campanha por template</button></div>
-            <p class="muted" style="margin-top:12px;">Se o JSON avanÃ§ado estiver vazio, o painel monta automaticamente um body simples usando o texto principal.</p>
+            <p class="muted" style="margin-top:12px;">Se o JSON avançado estiver vazio, o painel monta automaticamente um body simples usando o texto principal. Basta trocar o nome do template pelo aprovado na Meta.</p>
+            <div class="list" id="template-preset-preview" style="margin-top:16px;"><div class="list-item empty">Escolha um modelo pronto para preencher automaticamente.</div></div>
             <div class="result" id="bulk-template-result"></div>
           </div>
           <div class="section">
@@ -197,9 +205,9 @@ button{border:1px solid transparent;border-radius:12px;padding:12px 16px;cursor:
     <section class="view hidden" id="view-senders">
       <div class="topbar">
         <div>
-          <div class="eyebrow" style="color:#1d4ed8;">Envios unitÃ¡rios</div>
-          <h2>OperaÃ§Ãµes diretas</h2>
-          <p>Use para testes pontuais de texto, mÃ­dia e template.</p>
+          <div class="eyebrow" style="color:#1d4ed8;">Atendimento</div>
+          <h2>Mensagens rápidas</h2>
+          <p>Use texto livre para atendimento e testes rápidos. Para campanha em massa fora da janela de 24h, prefira a aba de campanha com template.</p>
         </div>
       </div>
       <div class="section">
@@ -220,11 +228,16 @@ button{border:1px solid transparent;border-radius:12px;padding:12px 16px;cursor:
             <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="sendMedia()">Enviar mÃ­dia</button></div><div class="result" id="media-result"></div>
           </div>
         </div>
-        <div class="card">
-          <div class="label">Template</div><h3>Enviar template simples</h3>
-          <div class="form-grid" style="margin-top:16px;"><div><label>NÃºmero com DDI</label><input type="text" id="tpl-to"></div><div><label>Idioma</label><input type="text" id="tpl-lang" value="pt_BR"></div><div class="full"><label>Nome do template</label><input type="text" id="tpl-name"></div></div>
-          <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="sendTemplate()">Enviar template</button></div><div class="result" id="template-result"></div>
-        </div>
+          <div class="card">
+            <div class="label">Template</div><h3>Enviar template simples</h3>
+            <div class="row" style="margin-top:12px;">
+              <button class="ghost-btn" type="button" onclick="applySingleTemplatePreset('boas_vindas')">Boas-vindas</button>
+              <button class="ghost-btn" type="button" onclick="applySingleTemplatePreset('cobranca')">Cobrança</button>
+              <button class="ghost-btn" type="button" onclick="applySingleTemplatePreset('lembrete')">Lembrete</button>
+            </div>
+            <div class="form-grid" style="margin-top:16px;"><div><label>NÃºmero com DDI</label><input type="text" id="tpl-to"></div><div><label>Idioma</label><input type="text" id="tpl-lang" value="pt_BR"></div><div class="full"><label>Nome do template</label><input type="text" id="tpl-name"></div></div>
+            <div class="row" style="margin-top:16px;"><button class="primary-btn" onclick="sendTemplate()">Enviar template</button></div><div class="result" id="template-result"></div>
+          </div>
       </div>
     </section>
 
@@ -297,6 +310,12 @@ button{border:1px solid transparent;border-radius:12px;padding:12px 16px;cursor:
   </main>
 </div>
 <script>
+const TEMPLATE_PRESETS = {
+  boas_vindas: { label: "Boas-vindas", suggestedName: "boas_vindas_v1", body: "Olá {nome}, tudo bem? Estamos entrando em contato para dar sequência no seu atendimento.", help: "Use para primeiro contato aprovado pela Meta." },
+  cobranca: { label: "Cobrança", suggestedName: "cobranca_v1", body: "Olá {nome}, identificamos uma pendência em aberto. Responda esta mensagem para regularizar.", help: "Ideal para lembrete de pagamento ou pendência." },
+  lembrete: { label: "Lembrete", suggestedName: "lembrete_v1", body: "Olá {nome}, passando para lembrar do seu compromisso agendado. Se precisar, responda por aqui.", help: "Bom para consultas, reuniões e eventos." },
+  confirmacao: { label: "Confirmação", suggestedName: "confirmacao_v1", body: "Olá {nome}, seu atendimento foi confirmado com sucesso. Qualquer dúvida, responda esta mensagem.", help: "Bom para pós-confirmação e avisos curtos." }
+};
 const state = { uploadedFile: null, contacts: [], selectedJobId: null, jobs: [], clients: [], selectedClientId: localStorage.getItem("client_id")||"" };
 function defaultBase(){if(window.location.protocol==="http:"||window.location.protocol==="https:")return window.location.origin;return "http://localhost:8000"}
 function getBase(){return (localStorage.getItem("api_url")||document.getElementById("cfg-url")?.value||defaultBase()).replace(/\/$/,"")}
@@ -320,6 +339,9 @@ async function request(path,options={}){const response=await fetch(getBase()+pat
 function formatDate(value){return value?value.replace("T"," ").replace("Z",""):"-"}
 function statusPill(status){return `<span class="pill ${status}">${status}</span>`}
 function escapeHtml(value){return String(value??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
+function renderTemplatePresetPreview(key){const host=document.getElementById("template-preset-preview");const preset=TEMPLATE_PRESETS[key];if(!host||!preset)return;host.innerHTML=`<div class="list-item"><div class="row" style="justify-content:space-between;"><strong>${escapeHtml(preset.label)}</strong><span class="pill finished">modelo</span></div><div class="muted" style="margin-top:6px;">Template sugerido: ${escapeHtml(preset.suggestedName)}</div><div class="muted" style="margin-top:6px;">${escapeHtml(preset.body)}</div><div class="muted" style="margin-top:6px;">${escapeHtml(preset.help)}</div></div>`}
+function applyTemplatePreset(key){const preset=TEMPLATE_PRESETS[key];if(!preset)return;document.getElementById("bulk-template-name").value=preset.suggestedName;document.getElementById("bulk-template-body").value=preset.body;document.getElementById("bulk-template-components").value="";renderTemplatePresetPreview(key)}
+function applySingleTemplatePreset(key){const preset=TEMPLATE_PRESETS[key];if(!preset)return;document.getElementById("tpl-name").value=preset.suggestedName}
 async function checkStatus(){try{const data=await request("/health",{method:"GET",headers:apiHeaders(false)});document.getElementById("api-dot").className="status-dot online";document.getElementById("api-status").textContent=data.simulation_mode?"SimulaÃ§Ã£o ativa":"API online";const mode=data.simulation_mode?"Modo: simulaÃ§Ã£o local":"Modo: produÃ§Ã£o Meta";const config=data.meta_configured?"Meta configurada":"Meta ainda nÃ£o configurada";document.getElementById("api-meta").textContent=`${mode} â€¢ ${config} â€¢ NÃºmero: ${data.phone_number_id}`;showResult("config-result",data,true)}catch(error){document.getElementById("api-dot").className="status-dot offline";document.getElementById("api-status").textContent="API offline";document.getElementById("api-meta").textContent=error.message;showResult("config-result",{error:error.message},false)}}
 async function loadDiagnostics(){try{const data=await request("/clients/current/diagnostics",{method:"GET",headers:apiHeaders(false)});const items=[];items.push(`<div class="list-item"><div class="row" style="justify-content:space-between;"><strong>${escapeHtml(data.name||data.client_id)}</strong>${statusPill(data.ready_for_live?"finished":(data.simulation_mode?"paused":"failed"))}</div><div class="muted" style="margin-top:6px;">Modo ${data.simulation_mode?"simulaÃ§Ã£o":"produÃ§Ã£o"} â€¢ API ${escapeHtml(data.api_version||"-")} â€¢ NÃºmero ${escapeHtml(data.phone_number_id||"nÃ£o configurado")}</div></div>`);if(data.callback_url){items.push(`<div class="list-item"><strong>Callback URL</strong><div class="muted" style="margin-top:6px;">${escapeHtml(data.callback_url)}</div></div>`)}if(data.access_token_masked||data.webhook_verify_token_masked){items.push(`<div class="list-item"><strong>Segredos mascarados</strong><div class="muted" style="margin-top:6px;">Token ${escapeHtml(data.access_token_masked||"nÃ£o configurado")} â€¢ Verify ${escapeHtml(data.webhook_verify_token_masked||"nÃ£o configurado")}</div></div>`)}(data.warnings||[]).forEach(item=>items.push(`<div class="list-item"><strong>AtenÃ§Ã£o</strong><div class="muted" style="margin-top:6px;">${escapeHtml(item)}</div></div>`));(data.recommendations||[]).forEach(item=>items.push(`<div class="list-item"><strong>RecomendaÃ§Ã£o</strong><div class="muted" style="margin-top:6px;">${escapeHtml(item)}</div></div>`));document.getElementById("diagnostics-list").innerHTML=items.join("")||`<div class="list-item empty">Nenhum diagnÃ³stico disponÃ­vel.</div>`;return data}catch(error){document.getElementById("diagnostics-list").innerHTML=`<div class="list-item empty">${escapeHtml(error.message)}</div>`;return null}}
 async function copyCallbackUrl(){const value=document.getElementById("cfg-callback-url")?.value||"";if(!value)return alert("Salve a configuracao primeiro para gerar o callback.");await navigator.clipboard.writeText(value);showResult("config-result",{callback_url:value,message:"Callback copiado com sucesso."},true)}
@@ -357,6 +379,7 @@ async function restoreBackup(){const file=document.getElementById("restore-backu
 async function runSelfTest(){try{const data=await request("/admin/self-test",{method:"POST",headers:apiHeaders(false)});showResult("self-test-result",data,true);await refreshAll()}catch(error){showResult("self-test-result",{error:error.message},false)}}
 async function refreshAll(){await Promise.all([checkStatus(),loadDashboard(),loadJobs(),loadSuppression(),loadWebhookEvents(),loadBackups(),loadAudit(),loadContacts(),loadDiagnostics()]);await loadJobStatus()}
 async function initPanel(){loadConfig();await loadClients();await loadSystemConfig();await refreshAll();setInterval(refreshAll,12000)}
+renderTemplatePresetPreview("boas_vindas");
 initPanel();
 </script>
 </body>
