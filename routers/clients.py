@@ -1,8 +1,8 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from pydantic import BaseModel
 
 from dependencies import get_client_id, require_api_key, require_local_request
-from services import audit, client_manager
+from services import audit, client_manager, whatsapp
 
 
 router = APIRouter(dependencies=[Depends(require_local_request), Depends(require_api_key)])
@@ -10,7 +10,7 @@ router = APIRouter(dependencies=[Depends(require_local_request), Depends(require
 
 class ClientCreatePayload(BaseModel):
     name: str
-    simulation_mode: bool = True
+    simulation_mode: bool = False
     notes: str = ""
 
 
@@ -53,6 +53,16 @@ async def get_current_client(client_id: str = Depends(get_client_id)):
 @router.get("/current/diagnostics", summary="Diagnostico operacional do cliente selecionado")
 async def get_current_client_diagnostics(client_id: str = Depends(get_client_id)):
     return client_manager.build_client_diagnostics(client_id)
+
+
+@router.post("/current/connection-test", summary="Testar conexao real do cliente com a Meta")
+async def test_current_client_connection(request: Request, client_id: str = Depends(get_client_id)):
+    client = client_manager.resolve_client(client_id, include_secrets=True)
+    result = await whatsapp.validate_connection(request.app.state.http_client, client)
+    return {
+        **result,
+        "diagnostics": client_manager.build_client_diagnostics(client_id),
+    }
 
 
 @router.patch("/{client_id}", summary="Atualizar dados basicos do cliente")

@@ -43,6 +43,10 @@ def _auth_headers(client: dict) -> dict:
     }
 
 
+def _auth_headers_get(client: dict) -> dict:
+    return {"Authorization": f"Bearer {_client_value(client, 'access_token')}"}
+
+
 def _simulated_message_response(to: str, status: str = "accepted") -> dict:
     return {
         "contacts": [{"wa_id": to}],
@@ -204,3 +208,22 @@ async def send_template(
     }
     resp = await client.post(_messages_url(client_config), json=payload, headers=_auth_headers(client_config))
     return _raise_for_meta_error(resp)
+
+
+async def validate_connection(client: httpx.AsyncClient, client_config: dict) -> dict:
+    if should_simulate(client_config):
+        return {
+            "success": False,
+            "mode": "simulation",
+            "detail": "Cliente ainda está em simulação. Desative a simulação para validar a conexão real com a Meta.",
+        }
+
+    ensure_meta_configured(client_config)
+    phone_number_id = _client_value(client_config, "phone_number_id")
+    resp = await client.get(
+        f"{_meta_base_url(client_config)}/{phone_number_id}",
+        headers=_auth_headers_get(client_config),
+        params={"fields": "id,display_phone_number,verified_name"},
+    )
+    meta = _raise_for_meta_error(resp)
+    return {"success": True, "mode": "production", "meta": meta}
