@@ -1,6 +1,7 @@
 import csv
 import io
 import json
+import re
 import unicodedata
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Query, UploadFile
@@ -58,6 +59,52 @@ async def bulk_send(
         "total_contacts": job["total"],
         "deduplicated": job["deduplicated"],
         "message": "Campanha criada e adicionada a fila.",
+        "acompanhe": f"/bulk/status/{job['id']}",
+        "relatorio": f"/bulk/report/{job['id']}",
+    }
+
+
+@router.post("/send-direct", summary="Criar campanha em massa a partir de numeros colados")
+async def bulk_send_direct(
+    phones_text: str = Form(..., description="Lista de numeros, um por linha ou separados por virgula"),
+    message: str = Form(..., description="Mensagem a enviar para todos"),
+    delay_seconds: float = Form(1.0, description="Intervalo entre envios em segundos"),
+    pilot_size: int = Form(0, description="Se maior que zero, cria uma campanha piloto limitada aos primeiros contatos."),
+    client_id: str = Depends(get_client_id),
+    operator: str = Depends(get_operator_name),
+):
+    if delay_seconds < 0.5:
+        raise HTTPException(status_code=400, detail="delay_seconds minimo e 0.5 para evitar bloqueio e rate limit.")
+
+    client = client_manager.resolve_client(client_id)
+    if not client.get("simulation_mode") and not (client.get("access_token") and client.get("phone_number_id")):
+        raise HTTPException(status_code=400, detail="Configure ACCESS_TOKEN e PHONE_NUMBER_ID do cliente antes de disparar.")
+
+    contacts = _parse_direct_phones(phones_text)
+
+    if not contacts:
+        raise HTTPException(status_code=422, detail="Nenhum numero valido encontrado no texto informado.")
+    if len(contacts) > MAX_CONTACTS:
+        contacts = contacts[:MAX_CONTACTS]
+    if pilot_size > 0:
+        contacts = contacts[:pilot_size]
+
+    job = bulk_manager.create_job(client_id=client_id, message=message, delay_seconds=delay_seconds, contacts=contacts)
+    audit.record_event(
+        client_id=client_id,
+        event_type="job_created_direct",
+        entity_type="job",
+        entity_id=job["id"],
+        operator=operator,
+        details={"total": job["total"], "pilot_size": pilot_size},
+    )
+    return {
+        "job_id": job["id"],
+        "client_id": client_id,
+        "status": job["status"],
+        "total_contacts": job["total"],
+        "deduplicated": job["deduplicated"],
+        "message": "Campanha direta criada e adicionada a fila.",
         "acompanhe": f"/bulk/status/{job['id']}",
         "relatorio": f"/bulk/report/{job['id']}",
     }
@@ -174,6 +221,18 @@ def _parse_csv(content: bytes) -> list[dict[str, str]]:
                 if normalized_key:
                     contact[normalized_key] = str(value or "").strip()
             contacts.append(contact)
+        if len(contacts) >= MAX_CONTACTS:
+            break
+    return contacts
+
+
+def _parse_direct_phones(phones_text: str) -> list[dict[str, str]]:
+    raw_items = re.split(r"[\n,;]+", phones_text or "")
+    contacts: list[dict[str, str]] = []
+    for raw in raw_items:
+        phone = "".join(filter(str.isdigit, raw))
+        if 10 <= len(phone) <= 15:
+            contacts.append({"phone": phone, "name": ""})
         if len(contacts) >= MAX_CONTACTS:
             break
     return contacts
