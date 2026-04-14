@@ -72,6 +72,7 @@ def main() -> int:
         resp = client.get("/clients/current/diagnostics", headers=headers)
         assert resp.status_code == 200
         assert "warnings" in resp.json()
+        assert resp.json()["ready_for_live"] is False
 
         resp = client.post("/clients/current/connection-test", headers=headers)
         assert resp.status_code == 200
@@ -173,6 +174,18 @@ def main() -> int:
         )
         assert resp.status_code == 200, resp.text
         job_id = resp.json()["job_id"]
+
+        resp = client.post(
+            "/bulk/send-direct",
+            headers=headers,
+            data={
+                "phones_text": "5511999990003\n5511999990004,5511999990003",
+                "message": "Ola direto",
+                "delay_seconds": "0.5",
+                "pilot_size": "0",
+            },
+        )
+        assert resp.status_code == 200, resp.text
 
         resp = client.get(f"/bulk/status/{job_id}", headers=headers)
         assert resp.status_code == 200, resp.text

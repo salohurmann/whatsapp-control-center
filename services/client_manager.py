@@ -6,6 +6,8 @@ from typing import Any
 from config import settings
 from services.storage import get_db
 
+PLACEHOLDER_PREFIXES = ("COLE_SEU_", "SEU_", "YOUR_", "CHANGE_ME")
+
 
 def utc_now_iso() -> str:
     return datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
@@ -147,6 +149,11 @@ def mask_secret(value: str, *, keep_start: int = 4, keep_end: int = 4) -> str:
     return f"{clean[:keep_start]}{middle}{clean[-keep_end:]}"
 
 
+def looks_like_placeholder(value: str) -> bool:
+    clean = str(value or "").strip().upper()
+    return any(clean.startswith(prefix) for prefix in PLACEHOLDER_PREFIXES)
+
+
 def build_client_diagnostics(client_id: str) -> dict[str, Any]:
     client = resolve_client(client_id, include_secrets=True)
     simulation_mode = bool(client.get("simulation_mode"))
@@ -163,12 +170,18 @@ def build_client_diagnostics(client_id: str) -> dict[str, Any]:
     else:
         if not access_token:
             warnings.append("Access Token nao configurado.")
+        elif looks_like_placeholder(access_token):
+            warnings.append("Access Token ainda parece ser um valor de exemplo/place-holder.")
         if not phone_number_id:
             warnings.append("Phone Number ID nao configurado.")
+        elif looks_like_placeholder(phone_number_id):
+            warnings.append("Phone Number ID ainda parece ser um valor de exemplo/place-holder.")
         if not waba_id:
             warnings.append("WABA ID nao configurado.")
         if not webhook_verify_token:
             warnings.append("Webhook Verify Token nao configurado.")
+        elif looks_like_placeholder(webhook_verify_token):
+            warnings.append("Webhook Verify Token ainda parece ser um valor de exemplo/place-holder.")
         recommendations.append("Para disparo inicial em massa, prefira template aprovado na Meta.")
 
     public_base_url = ""
@@ -184,7 +197,14 @@ def build_client_diagnostics(client_id: str) -> dict[str, Any]:
     else:
         warnings.append("META_APP_SECRET nao configurado. O webhook nao valida assinatura da Meta.")
 
-    ready_for_live = not simulation_mode and bool(access_token and phone_number_id and webhook_verify_token)
+    ready_for_live = not simulation_mode and bool(
+        access_token
+        and phone_number_id
+        and webhook_verify_token
+        and not looks_like_placeholder(access_token)
+        and not looks_like_placeholder(phone_number_id)
+        and not looks_like_placeholder(webhook_verify_token)
+    )
     return {
         "client_id": client["id"],
         "name": client["name"],

@@ -3,6 +3,8 @@ import uuid
 import httpx
 from fastapi import HTTPException
 
+PLACEHOLDER_PREFIXES = ("COLE_SEU_", "SEU_", "YOUR_", "CHANGE_ME")
+
 
 def _client_value(client: dict, key: str, default: str = "") -> str:
     return str(client.get(key) or default).strip()
@@ -14,13 +16,18 @@ def should_simulate(client: dict, simulate: bool | None = None) -> bool:
     return bool(client.get("simulation_mode"))
 
 
+def _looks_like_placeholder(value: str) -> bool:
+    clean = str(value or "").strip().upper()
+    return any(clean.startswith(prefix) for prefix in PLACEHOLDER_PREFIXES)
+
+
 def ensure_meta_configured(client: dict) -> None:
     access_token = _client_value(client, "access_token")
     phone_number_id = _client_value(client, "phone_number_id")
-    if not access_token or not phone_number_id:
+    if not access_token or not phone_number_id or _looks_like_placeholder(access_token) or _looks_like_placeholder(phone_number_id):
         raise HTTPException(
             status_code=400,
-            detail=f"Cliente '{client.get('name', client.get('id', ''))}' sem Meta configurada. Defina ACCESS_TOKEN e PHONE_NUMBER_ID antes de enviar mensagens.",
+            detail=f"Cliente '{client.get('name', client.get('id', ''))}' sem Meta configurada de forma valida. Defina ACCESS_TOKEN e PHONE_NUMBER_ID reais antes de enviar mensagens.",
         )
 
 
@@ -215,7 +222,7 @@ async def validate_connection(client: httpx.AsyncClient, client_config: dict) ->
         return {
             "success": False,
             "mode": "simulation",
-            "detail": "Cliente ainda está em simulação. Desative a simulação para validar a conexão real com a Meta.",
+            "detail": "Cliente ainda esta em simulacao. Desative a simulacao para validar a conexao real com a Meta.",
         }
 
     ensure_meta_configured(client_config)
